@@ -1,1 +1,71 @@
-test victor
+<?php
+// Démarrage de la session pour stocker les tâches
+session_start();
+
+if (!isset($_SESSION['tasks'])) {
+    $_SESSION['tasks'] = [];
+}
+
+// Ajouter une tâche
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_task'])) {
+    $task = htmlspecialchars(trim($_POST['task']));
+    if ($task) {
+        $_SESSION['tasks'][] = ['text' => $task, 'done' => false];
+    }
+}
+
+// Marquer une tâche comme terminée
+if (isset($_GET['done'])) {
+    $index = (int)$_GET['done'];
+    if (isset($_SESSION['tasks'][$index])) {
+        $_SESSION['tasks'][$index]['done'] = true;
+    }
+}
+
+// Supprimer une tâche
+if (isset($_GET['delete'])) {
+    $index = (int)$_GET['delete'];
+    if (isset($_SESSION['tasks'][$index])) {
+        unset($_SESSION['tasks'][$index]);
+        $_SESSION['tasks'] = array_values($_SESSION['tasks']); // Réindexation
+    }
+}
+
+?>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestionnaire de Tâches</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .task { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .done { text-decoration: line-through; color: gray; }
+        button { margin-left: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Gestionnaire de Tâches en PHP</h1>
+    <form method="POST" action="">
+        <input type="text" name="task" placeholder="Nouvelle tâche" required>
+        <button type="submit" name="add_task">Ajouter</button>
+    </form>
+    <h2>Mes Tâches</h2>
+    <ul>
+        <?php foreach ($_SESSION['tasks'] as $index => $task): ?>
+            <li class="task">
+                <span class="<?= $task['done'] ? 'done' : '' ?>">
+                    <?= htmlspecialchars($task['text']) ?>
+                </span>
+                <div>
+                    <?php if (!$task['done']): ?>
+                        <a href="?done=<?= $index ?>"><button>Terminer</button></a>
+                    <?php endif; ?>
+                    <a href="?delete=<?= $index ?>"><button>Supprimer</button></a>
+                </div>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+</body>
+</html>
